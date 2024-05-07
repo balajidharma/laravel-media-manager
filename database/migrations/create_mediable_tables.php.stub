@@ -1,0 +1,45 @@
+<?php
+
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Database\Migrations\Migration;
+use BalajiDharma\LaravelMediaManger\Models\MediaManger;
+
+return new class extends Migration
+{
+    /**
+     * Run the migrations.
+     */
+    public function up(): void
+    {
+        if (!Schema::hasTable('media_managers')) {
+            Schema::create(
+                'media_mangers',
+                function (Blueprint $table) {
+                    $table->bigIncrements('id');
+                    $table->timestamps();
+                }
+            );
+        }
+
+        if (!Schema::hasTable('mediables')) {
+            Schema::create(
+                'mediables',
+                function (Blueprint $table) {
+                    $table->foreignIdFor(MediaManger::class)->constrained('media_managers')->cascadeOnDelete();
+                    $table->morphs('mediable');
+                    $table->primary(['media_manager_id', 'mediable_type', 'mediable_id']);
+                }
+            );
+        }
+    }
+
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
+    {
+        Schema::dropIfExists('media_mangers');
+        Schema::dropIfExists('mediables');
+    }
+};

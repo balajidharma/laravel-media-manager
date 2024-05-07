@@ -15,13 +15,13 @@
     },
     "autoload": {
         "psr-4": {
-            "BalajiDharma\\LaravelMediaManger\\": "src"
+            "BalajiDharma\\LaravelMediaManager\\": "src"
         }
     },
     "extra": {
         "laravel": {
             "providers": [
-                "BalajiDharma\\LaravelMediaManger\\MediaMangerServiceProvider"
+                "BalajiDharma\\LaravelMediaManager\\MediaManagerServiceProvider"
             ]
         }
     }
