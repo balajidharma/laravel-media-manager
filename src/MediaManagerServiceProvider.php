@@ -1,12 +1,12 @@
 <?php
 
-namespace BalajiDharma\LaravelMediaManger;
+namespace BalajiDharma\LaravelMediaManager;
 
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\Support\Collection;
 use Illuminate\Support\ServiceProvider;
 
-class MediaMangerServiceProvider extends ServiceProvider
+class MediaManagerServiceProvider extends ServiceProvider
 {
     /**
      * Register any application services.
@@ -16,7 +16,7 @@ class MediaMangerServiceProvider extends ServiceProvider
     public function register()
     {
         $this->mergeConfigFrom(
-            __DIR__.'/../config/media-manger.php', 'media-manger'
+            __DIR__.'/../config/media-manager.php', 'media-manager'
         );
     }
 
@@ -29,12 +29,12 @@ class MediaMangerServiceProvider extends ServiceProvider
     {
         if (app()->runningInConsole()) {
             $this->publishes([
-                __DIR__.'/../config/media-manger.php' => config_path('media-manger.php'),
-            ], ['config', 'media-manger-config', 'media-manger', 'admin-core', 'admin-core-config']);
+                __DIR__.'/../config/media-manager.php' => config_path('media-manager.php'),
+            ], ['config', 'media-manager-config', 'media-manager', 'admin-core', 'admin-core-config']);
 
             $this->publishes([
                 __DIR__.'/../database/migrations/create_mediable_tables.php.stub' => $this->getMigrationFileName('create_mediable_tables.php'),
-            ], ['migrations', 'media-manger-migrations', 'media-manger', 'admin-core', 'admin-core-migrations']);
+            ], ['migrations', 'media-manager-migrations', 'media-manager', 'admin-core', 'admin-core-migrations']);
         }
     }
 

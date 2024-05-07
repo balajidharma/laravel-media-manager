@@ -1,8 +1,8 @@
 <?php
 
-namespace BalajiDharma\LaravelMediaManger\Traits;
+namespace BalajiDharma\LaravelMediaManager\Traits;
 
-use BalajiDharma\LaravelMediaManger\Models\MediaManager;
+use BalajiDharma\LaravelMediaManager\Models\MediaManager;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
 use Illuminate\Database\Eloquent\Relations\morphToMany;
 use Spatie\MediaLibrary\MediaCollections\FileAdder;

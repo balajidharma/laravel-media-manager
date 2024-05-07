@@ -3,7 +3,7 @@
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
-use BalajiDharma\LaravelMediaManger\Models\MediaManger;
+use BalajiDharma\LaravelMediaManager\Models\MediaManager;
 
 return new class extends Migration
 {
@@ -14,7 +14,7 @@ return new class extends Migration
     {
         if (!Schema::hasTable('media_managers')) {
             Schema::create(
-                'media_mangers',
+                'media_managers',
                 function (Blueprint $table) {
                     $table->bigIncrements('id');
                     $table->timestamps();
@@ -26,7 +26,7 @@ return new class extends Migration
             Schema::create(
                 'mediables',
                 function (Blueprint $table) {
-                    $table->foreignIdFor(MediaManger::class)->constrained('media_managers')->cascadeOnDelete();
+                    $table->foreignIdFor(MediaManager::class)->constrained('media_managers')->cascadeOnDelete();
                     $table->morphs('mediable');
                     $table->primary(['media_manager_id', 'mediable_type', 'mediable_id']);
                 }
@@ -39,7 +39,7 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('media_mangers');
+        Schema::dropIfExists('media_managers');
         Schema::dropIfExists('mediables');
     }
 };
