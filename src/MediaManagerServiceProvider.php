@@ -2,9 +2,11 @@
 
 namespace BalajiDharma\LaravelMediaManager;
 
-use Illuminate\Filesystem\Filesystem;
-use Illuminate\Support\Collection;
 use Illuminate\Support\ServiceProvider;
+use Plank\Mediable\Facades\ImageManipulator;
+use Plank\Mediable\ImageManipulation;
+use Plank\Mediable\Media;
+use Intervention\Image\Image;
 
 class MediaManagerServiceProvider extends ServiceProvider
 {
@@ -18,6 +20,8 @@ class MediaManagerServiceProvider extends ServiceProvider
         $this->mergeConfigFrom(
             __DIR__.'/../config/media-manager.php', 'media-manager'
         );
+
+        $this->registerDriver();
     }
 
     /**
@@ -31,27 +35,62 @@ class MediaManagerServiceProvider extends ServiceProvider
             $this->publishes([
                 __DIR__.'/../config/media-manager.php' => config_path('media-manager.php'),
             ], ['config', 'media-manager-config', 'media-manager', 'admin-core', 'admin-core-config']);
+        }
 
-            $this->publishes([
-                __DIR__.'/../database/migrations/create_mediable_tables.php.stub' => $this->getMigrationFileName('create_mediable_tables.php'),
-            ], ['migrations', 'media-manager-migrations', 'media-manager', 'admin-core', 'admin-core-migrations']);
+        // Define the image variants based on the config
+        $this->defineImageVariants();
+    }
+
+    protected function registerDriver()
+    {
+        $imageDriver = config('media-manager.image_driver', 'gd');
+
+        if($imageDriver == 'imagick')
+        {
+            $this->app->bind(\Intervention\Image\Interfaces\DriverInterface::class,
+                \Intervention\Image\Drivers\Imagick\Driver::class
+            );
+        } 
+        elseif($imageDriver == 'gd')
+        {
+            $this->app->bind(\Intervention\Image\Interfaces\DriverInterface::class,
+                \Intervention\Image\Drivers\Gd\Driver::class
+            );
         }
     }
 
-    /**
-     * Returns existing migration file if found, else uses the current timestamp.
-     */
-    protected function getMigrationFileName($migrationFileName): string
+    protected function defineImageVariants()
     {
-        $timestamp = date('Y_m_d_His');
+        $imageVariants = config('media-manager.image_variants');
 
-        $filesystem = $this->app->make(Filesystem::class);
+        foreach ($imageVariants as $variantName => $variantConfig) {
+            ImageManipulator::defineVariant(
+                $variantName,
+                $this->defineImageManipulation($variantConfig)
+            );
+        }
+    }
 
-        return Collection::make($this->app->databasePath().DIRECTORY_SEPARATOR.'migrations'.DIRECTORY_SEPARATOR)
-            ->flatMap(function ($path) use ($filesystem, $migrationFileName) {
-                return $filesystem->glob($path.'*_'.$migrationFileName);
-            })
-            ->push($this->app->databasePath()."/migrations/{$timestamp}_{$migrationFileName}")
-            ->first();
+    protected function defineImageManipulation($variantConfig)
+    {
+        $imageManipulation = ImageManipulation::make(function (Image $image, Media $originalMedia) use ($variantConfig) {
+            $image->scale(
+                $variantConfig['width'],
+                $variantConfig['height']
+            );
+
+            if (isset($variantConfig['greyscale']) && $variantConfig['greyscale']) {
+                $image->greyscale();
+            }
+        });
+
+        if (isset($variantConfig['format'])) {
+            $imageManipulation->setOutputFormat($variantConfig['format']);
+        }
+
+        if (isset($variantConfig['quality'])) {
+            $imageManipulation->setOutputQuality($variantConfig['quality']);
+        }
+        return $imageManipulation;
     }
 }
