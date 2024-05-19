@@ -3,10 +3,10 @@
 namespace BalajiDharma\LaravelMediaManager;
 
 use Illuminate\Support\ServiceProvider;
+use Intervention\Image\Image;
 use Plank\Mediable\Facades\ImageManipulator;
 use Plank\Mediable\ImageManipulation;
 use Plank\Mediable\Media;
-use Intervention\Image\Image;
 
 class MediaManagerServiceProvider extends ServiceProvider
 {
@@ -36,7 +36,7 @@ class MediaManagerServiceProvider extends ServiceProvider
                 __DIR__.'/../config/media-manager.php' => config_path('media-manager.php'),
             ], ['config', 'media-manager-config', 'media-manager', 'admin-core', 'admin-core-config']);
         }
-
+        
         // Define the image variants based on the config
         $this->defineImageVariants();
     }
@@ -45,14 +45,11 @@ class MediaManagerServiceProvider extends ServiceProvider
     {
         $imageDriver = config('media-manager.image_driver', 'gd');
 
-        if($imageDriver == 'imagick')
-        {
+        if ($imageDriver == 'imagick') {
             $this->app->bind(\Intervention\Image\Interfaces\DriverInterface::class,
                 \Intervention\Image\Drivers\Imagick\Driver::class
             );
-        } 
-        elseif($imageDriver == 'gd')
-        {
+        } elseif ($imageDriver == 'gd') {
             $this->app->bind(\Intervention\Image\Interfaces\DriverInterface::class,
                 \Intervention\Image\Drivers\Gd\Driver::class
             );
@@ -74,10 +71,11 @@ class MediaManagerServiceProvider extends ServiceProvider
     protected function defineImageManipulation($variantConfig)
     {
         $imageManipulation = ImageManipulation::make(function (Image $image, Media $originalMedia) use ($variantConfig) {
-            $image->scale(
-                $variantConfig['width'],
-                $variantConfig['height']
-            );
+
+            $method = $variantConfig['method'];
+            $params = $variantConfig['params'];
+
+            call_user_func_array([$image, $method], $params);
 
             if (isset($variantConfig['greyscale']) && $variantConfig['greyscale']) {
                 $image->greyscale();
@@ -91,6 +89,7 @@ class MediaManagerServiceProvider extends ServiceProvider
         if (isset($variantConfig['quality'])) {
             $imageManipulation->setOutputQuality($variantConfig['quality']);
         }
+
         return $imageManipulation;
     }
 }
