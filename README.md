@@ -16,7 +16,7 @@
 ```bash
 composer require balajidharma/laravel-media-manager
 ```
-- Publish the migration and the config/category.php config file with
+- Publish the config/media-manager.php config file with
 ```bash
 php artisan vendor:publish --provider="BalajiDharma\LaravelMediaManager\MediaManagerServiceProvider"
 ```
