@@ -5,12 +5,16 @@ return [
 
     'media_types' => [
         'default' => [
+            'disk' => 'public',
+            'directory' => 'media',
             'image_variants' => [
                 'thumbnail',
                 'small',
             ],
         ],
         'avatar' => [
+            'disk' => 'public',
+            'directory' => 'avatar',
             'image_variants' => [
                 'thumbnail',
             ],

@@ -35,10 +35,15 @@ class MediaManager
         return $fileType[$media->extension] ?? '';
     }
 
-    public function createFromSource($file, $type, $name = null, $alt = null)
+    public function createFromSource($file, $type, $name, $alt, Media $media)
     {
+        $mediaType = $this->getMediaTypes()[$type] ?? [];
+        $mediaDisk = $mediaType['disk'] ?? 'public';
+        $mediaDirectory = $mediaType['directory'] ?? 'media';
+
         $mediaModel = MediaUploader::fromSource($file)
-            ->toDirectory('media');
+            ->toDisk($mediaDisk)
+            ->toDirectory($mediaDirectory);
 
         if ($name) {
             $mediaModel->useFilename($name);
@@ -52,11 +57,16 @@ class MediaManager
             $model->setAttribute('variant_name', $type);
         });
 
-        $originalMedia = $mediaModel->upload();
-
+        if ($media) {
+            $originalMedia = $mediaModel->replace($media);
+            $media->getAllVariants()->each(function (Media $variant) {
+                $variant->delete();
+            });
+        } else {
+            $originalMedia = $mediaModel->upload();
+        }
         if ($originalMedia->aggregate_type == 'image') {
-            $mediaTypes = $this->getMediaTypes();
-            $imageVariants = $mediaTypes[$type]['image_variants'] ?? [];
+            $imageVariants = $mediaType['image_variants'] ?? [];
 
             if (! empty($imageVariants)) {
                 CreateImageVariants::dispatch($originalMedia, $imageVariants);

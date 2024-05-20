@@ -36,7 +36,7 @@ class MediaManagerServiceProvider extends ServiceProvider
                 __DIR__.'/../config/media-manager.php' => config_path('media-manager.php'),
             ], ['config', 'media-manager-config', 'media-manager', 'admin-core', 'admin-core-config']);
         }
-        
+
         // Define the image variants based on the config
         $this->defineImageVariants();
     }
