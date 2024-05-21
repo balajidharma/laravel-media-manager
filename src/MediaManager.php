@@ -35,7 +35,7 @@ class MediaManager
         return $fileType[$media->extension] ?? '';
     }
 
-    public function createFromSource($file, $type, $name, $alt, Media $media)
+    public function createFromSource($file, $type, $name, $alt, ?Media $media = null)
     {
         $mediaType = $this->getMediaTypes()[$type] ?? [];
         $mediaDisk = $mediaType['disk'] ?? 'public';
