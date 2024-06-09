@@ -3,6 +3,7 @@
 namespace BalajiDharma\LaravelMediaManager;
 
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Facades\Log;
 use Intervention\Image\Image;
 use Plank\Mediable\Facades\ImageManipulator;
 use Plank\Mediable\ImageManipulation;
@@ -60,11 +61,15 @@ class MediaManagerServiceProvider extends ServiceProvider
     {
         $imageVariants = config('media-manager.image_variants');
 
-        foreach ($imageVariants as $variantName => $variantConfig) {
-            ImageManipulator::defineVariant(
-                $variantName,
-                $this->defineImageManipulation($variantConfig)
-            );
+        try {
+            foreach ($imageVariants as $variantName => $variantConfig) {
+                ImageManipulator::defineVariant(
+                    $variantName,
+                    $this->defineImageManipulation($variantConfig)
+                );
+            }
+        } catch (\Exception $e) {
+            Log::error($e->getMessage());
         }
     }
 
