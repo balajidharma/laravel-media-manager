@@ -31,8 +31,11 @@ class MediaManager
     public function getMediaTypeIcon(Media $media)
     {
         $fileType = $this->app['config']->get('media-manager.file_type_icons', []);
-
-        return $fileType[$media->extension] ?? '';
+        $type = $media->extension;
+        if ($media->aggregate_type == 'image') {
+            $type = 'image';
+        }
+        return $fileType[$type] ?? '';
     }
 
     public function createFromSource($file, $type, $name, $alt, ?Media $media = null)
