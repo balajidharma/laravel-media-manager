@@ -2,8 +2,8 @@
 
 namespace BalajiDharma\LaravelMediaManager;
 
-use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\ServiceProvider;
 use Intervention\Image\Image;
 use Plank\Mediable\Facades\ImageManipulator;
 use Plank\Mediable\ImageManipulation;

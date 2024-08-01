@@ -35,6 +35,7 @@ class MediaManager
         if ($media->aggregate_type == 'image') {
             $type = 'image';
         }
+
         return $fileType[$type] ?? '';
     }
 
