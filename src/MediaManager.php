@@ -80,6 +80,48 @@ class MediaManager
         return $originalMedia;
     }
 
+    public function createFromString($file, $type, $name, $alt, ?Media $media = null)
+    {
+        $mediaType = $this->getMediaTypes()[$type] ?? [];
+        $mediaDisk = $mediaType['disk'] ?? 'public';
+        $mediaDirectory = $mediaType['directory'] ?? 'media';
+
+        $mediaModel = MediaUploader::fromString($file)
+            ->toDisk($mediaDisk)
+            ->toDirectory($mediaDirectory);
+
+        if ($name) {
+            $mediaModel->useFilename($name);
+        }
+
+        if ($alt) {
+            $mediaModel->withAltAttribute($alt);
+        }
+
+        $mediaModel->beforeSave(function (Media $model, SourceAdapterInterface $source) use ($type) {
+            $model->setAttribute('variant_name', $type);
+        });
+
+        if ($media) {
+            $originalMedia = $mediaModel->replace($media);
+            $media->getAllVariants()->each(function (Media $variant) {
+                $variant->delete();
+            });
+        } else {
+            $originalMedia = $mediaModel->upload();
+        }
+        if ($originalMedia->aggregate_type == 'image') {
+            $imageVariants = $mediaType['image_variants'] ?? [];
+
+            if (! empty($imageVariants)) {
+                CreateImageVariants::dispatch($originalMedia, $imageVariants);
+            }
+        }
+
+        return $originalMedia;
+    }
+
+
     public function getMediaTypes()
     {
         return $this->app['config']->get('media-manager.media_types', []);
