@@ -3,6 +3,7 @@
 namespace BalajiDharma\LaravelMediaManager;
 
 use Illuminate\Contracts\Foundation\Application;
+use Illuminate\Support\Carbon;
 use MediaUploader;
 use Plank\Mediable\Jobs\CreateImageVariants;
 use Plank\Mediable\Media;
@@ -44,6 +45,7 @@ class MediaManager
         $mediaType = $this->getMediaTypes()[$type] ?? [];
         $mediaDisk = $mediaType['disk'] ?? 'public';
         $mediaDirectory = $mediaType['directory'] ?? 'media';
+        $mediaDirectory = $this->parseDirectory($mediaDirectory);
 
         $mediaModel = MediaUploader::fromSource($file)
             ->toDisk($mediaDisk)
@@ -85,6 +87,7 @@ class MediaManager
         $mediaType = $this->getMediaTypes()[$type] ?? [];
         $mediaDisk = $mediaType['disk'] ?? 'public';
         $mediaDirectory = $mediaType['directory'] ?? 'media';
+        $mediaDirectory = $this->parseDirectory($mediaDirectory);
 
         $mediaModel = MediaUploader::fromString($file)
             ->toDisk($mediaDisk)
@@ -136,5 +139,17 @@ class MediaManager
         }
 
         return $options;
+    }
+
+    protected function parseDirectory($directory)
+    {
+        $now = Carbon::now();
+        $replacements = [
+            '{Y}' => $now->year,
+            '{m}' => $now->format('m'),
+            '{d}' => $now->format('d'),
+        ];
+
+        return str_replace(array_keys($replacements), array_values($replacements), $directory);
     }
 }
