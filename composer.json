@@ -10,8 +10,8 @@
         }
     ],
     "require": {
-        "illuminate/support": "^11.0|^12.0",
-        "plank/laravel-mediable": "^6.1"
+        "illuminate/support": "^12.0|^13.0",
+        "plank/laravel-mediable": "^6.5"
     },
     "autoload": {
         "psr-4": {
