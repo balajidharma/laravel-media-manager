@@ -3,6 +3,7 @@
 namespace BalajiDharma\LaravelMediaManager;
 
 use Illuminate\Contracts\Foundation\Application;
+use Illuminate\Support\Carbon;
 use MediaUploader;
 use Plank\Mediable\Jobs\CreateImageVariants;
 use Plank\Mediable\Media;
@@ -31,15 +32,20 @@ class MediaManager
     public function getMediaTypeIcon(Media $media)
     {
         $fileType = $this->app['config']->get('media-manager.file_type_icons', []);
+        $type = $media->extension;
+        if ($media->aggregate_type == 'image') {
+            $type = 'image';
+        }
 
-        return $fileType[$media->extension] ?? '';
+        return $fileType[$type] ?? '';
     }
 
-    public function createFromSource($file, $type, $name, $alt, Media $media)
+    public function createFromSource($file, $type, $name, $alt, ?Media $media = null)
     {
         $mediaType = $this->getMediaTypes()[$type] ?? [];
         $mediaDisk = $mediaType['disk'] ?? 'public';
         $mediaDirectory = $mediaType['directory'] ?? 'media';
+        $mediaDirectory = $this->parseDirectory($mediaDirectory);
 
         $mediaModel = MediaUploader::fromSource($file)
             ->toDisk($mediaDisk)
@@ -76,6 +82,49 @@ class MediaManager
         return $originalMedia;
     }
 
+    public function createFromString($file, $type, $name, $alt, ?Media $media = null)
+    {
+        $mediaType = $this->getMediaTypes()[$type] ?? [];
+        $mediaDisk = $mediaType['disk'] ?? 'public';
+        $mediaDirectory = $mediaType['directory'] ?? 'media';
+        $mediaDirectory = $this->parseDirectory($mediaDirectory);
+
+        $mediaModel = MediaUploader::fromString($file)
+            ->toDisk($mediaDisk)
+            ->toDirectory($mediaDirectory);
+
+        if ($name) {
+            $mediaModel->useFilename($name);
+        }
+
+        if ($alt) {
+            $mediaModel->withAltAttribute($alt);
+        }
+
+        $mediaModel->beforeSave(function (Media $model, SourceAdapterInterface $source) use ($type) {
+            $model->setAttribute('variant_name', $type);
+        });
+
+        if ($media) {
+            $originalMedia = $mediaModel->replace($media);
+            $media->getAllVariants()->each(function (Media $variant) {
+                $variant->delete();
+            });
+        } else {
+            $originalMedia = $mediaModel->upload();
+        }
+        if ($originalMedia->aggregate_type == 'image') {
+            $imageVariants = $mediaType['image_variants'] ?? [];
+
+            if (! empty($imageVariants)) {
+                CreateImageVariants::dispatch($originalMedia, $imageVariants);
+            }
+        }
+
+        return $originalMedia;
+    }
+
+
     public function getMediaTypes()
     {
         return $this->app['config']->get('media-manager.media_types', []);
@@ -90,5 +139,17 @@ class MediaManager
         }
 
         return $options;
+    }
+
+    protected function parseDirectory($directory)
+    {
+        $now = Carbon::now();
+        $replacements = [
+            '{Y}' => $now->year,
+            '{m}' => $now->format('m'),
+            '{d}' => $now->format('d'),
+        ];
+
+        return str_replace(array_keys($replacements), array_values($replacements), $directory);
     }
 }
